@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; }
+        .navbar {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;
+            color: white;
+        }
+        .navbar h1 { font-size: 20px; }
+        .navbar .user-info { font-size: 14px; }
+        .logout-btn {
+            background: rgba(255,255,255,0.2); border: 1px solid white;
+            color: white; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-size: 13px;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.35); }
+        .main { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .card {
+            background: white; border-radius: 10px; padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 25px;
+        }
+        .card h2 { color: #333; margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid #11998e; padding-bottom: 10px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
+        input, select {
+            padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;
+        }
+        input:focus, select:focus { outline: none; border-color: #11998e; }
+        .full-width { grid-column: 1 / -1; }
+        .submit-btn {
+            width: 100%; padding: 13px; background: #11998e; color: white;
+            border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px;
+        }
+        .submit-btn:hover { background: #0d7a70; }
+        .result-card { display: none; }
+        .status-badge {
+            display: inline-block; padding: 8px 20px; border-radius: 20px;
+            font-weight: bold; font-size: 16px; margin-bottom: 20px;
+        }
+        .APPROVED { background: #d4edda; color: #155724; }
+        .CONDITIONAL_APPROVAL { background: #fff3cd; color: #856404; }
+        .REJECTED { background: #f8d7da; color: #721c24; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .result-item { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .result-item .value { font-size: 22px; font-weight: bold; color: #11998e; }
+        .result-item .label { font-size: 12px; color: #666; margin-top: 4px; }
+        .score-bar-wrap { margin: 15px 0; }
+        .score-bar-bg { background: #e9ecef; border-radius: 10px; height: 14px; }
+        .score-bar { height: 14px; border-radius: 10px; transition: width 0.8s; }
+        .recommendations { background: #e8f5e9; padding: 15px; border-radius: 8px; font-size: 14px; color: #2e7d32; line-height: 1.6; }
+        .error-msg { color: #e74c3c; text-align: center; margin-top: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>💰 Loan Application Portal</h1>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <span class="user-info">Welcome, <strong id="navName"></strong></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="main">
+        <!-- Loan Eligibility Form -->
+        <div class="card">
+            <h2>Check Loan Eligibility</h2>
+            <form id="loanForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Monthly Income (₹)</label>
+                        <input type="number" id="monthlyIncome" placeholder="e.g. 50000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Expenses (₹)</label>
+                        <input type="number" id="monthlyExpenses" placeholder="e.g. 20000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Existing EMI (₹)</label>
+                        <input type="number" id="existingEMI" placeholder="0 if none" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Savings (₹)</label>
+                        <input type="number" id="savings" placeholder="e.g. 100000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Loan Amount (₹)</label>
+                        <input type="number" id="loanAmount" placeholder="e.g. 500000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tenure (Months)</label>
+                        <input type="number" id="tenureMonths" placeholder="e.g. 60" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Interest Rate (% per annum)</label>
+                        <input type="number" id="interestRate" placeholder="e.g. 10.5" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Employment Type</label>
+                        <select id="employmentType">
+                            <option value="SALARIED">Salaried</option>
+                            <option value="SELF_EMPLOYED">Self Employed</option>
+                            <option value="BUSINESS">Business</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Job Stability</label>
+                        <select id="stableJob">
+                            <option value="true">Stable Job (1+ year)</option>
+                            <option value="false">Unstable / New Job</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Check Eligibility</button>
+                <div id="formError" class="error-msg"></div>
+            </form>
+        </div>
+
+        <!-- Result Card -->
+        <div class="card result-card" id="resultCard">
+            <h2>Loan Eligibility Result</h2>
+            <div id="statusBadge" class="status-badge"></div>
+
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="value" id="resEMI"></div>
+                    <div class="label">Monthly EMI (₹)</div>
+                </div>
+                <div class="result-item">
+                    <div class="value" id="resTotalInterest"></div>
+                    <div class="label">Total Interest (₹)</div>
+                </div>
+                <div class="result-item">
+                    <div class="value" id="resTotalRepayment"></div>
+                    <div class="label">Total Repayment (₹)</div>
+                </div>
+                <div class="result-item">
+                    <div class="value" id="resFOIR"></div>
+                    <div class="label">FOIR (%)</div>
+                </div>
+                <div class="result-item">
+                    <div class="value" id="resNetIncome"></div>
+                    <div class="label">Net Income (₹)</div>
+                </div>
+                <div class="result-item">
+                    <div class="value" id="resRisk"></div>
+                    <div class="label">Risk Level</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <strong>Financial Health Score: <span id="resScore"></span>/100 — <span id="resClassification"></span></strong>
+                <div class="score-bar-wrap">
+                    <div class="score-bar-bg">
+                        <div class="score-bar" id="scoreBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recommendations" id="resRecommendations"></div>
+        </div>
+    </div>
+
+    <script>
+        // Set user name in navbar
+        const firstName = localStorage.getItem('userFirstName') || '';
+        const lastName = localStorage.getItem('userLastName') || '';
+        document.getElementById('navName').textContent = firstName + ' ' + lastName;
+
+        // Redirect to login if not logged in
+        if (!localStorage.getItem('userToken')) {
+            window.location.href = 'http://localhost:8082/login';
+        }
+
+        document.getElementById('loanForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('formError').textContent = '';
+            document.getElementById('resultCard').style.display = 'none';
+
+            const payload = {
+                monthlyIncome: parseFloat(document.getElementById('monthlyIncome').value),
+                monthlyExpenses: parseFloat(document.getElementById('monthlyExpenses').value),
+                existingEMI: parseFloat(document.getElementById('existingEMI').value),
+                savings: parseFloat(document.getElementById('savings').value),
+                loanAmount: parseFloat(document.getElementById('loanAmount').value),
+                tenureMonths: parseInt(document.getElementById('tenureMonths').value),
+                interestRate: parseFloat(document.getElementById('interestRate').value),
+                employmentType: document.getElementById('employmentType').value,
+                stableJob: document.getElementById('stableJob').value === 'true',
+                borrowerName: firstName + ' ' + lastName
+            };
+
+            try {
+                const response = await fetch('http://localhost:8084/api/loan/check-eligibility', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('Server error');
+                const data = await response.json();
+                showResult(data);
+            } catch (err) {
+                document.getElementById('formError').textContent = 'Failed to check eligibility. Make sure Loan service is running on port 8084.';
+            }
+        });
+
+        function fmt(num) {
+            return Math.round(num).toLocaleString('en-IN');
+        }
+
+        function showResult(data) {
+            const card = document.getElementById('resultCard');
+            card.style.display = 'block';
+
+            const badge = document.getElementById('statusBadge');
+            badge.textContent = data.eligibilityStatus.replace('_', ' ');
+            badge.className = 'status-badge ' + data.eligibilityStatus;
+
+            document.getElementById('resEMI').textContent = '₹' + fmt(data.monthlyEMI);
+            document.getElementById('resTotalInterest').textContent = '₹' + fmt(data.totalInterest);
+            document.getElementById('resTotalRepayment').textContent = '₹' + fmt(data.totalRepayment);
+            document.getElementById('resFOIR').textContent = (data.foir * 100).toFixed(1) + '%';
+            document.getElementById('resNetIncome').textContent = '₹' + fmt(data.netIncome);
+            document.getElementById('resRisk').textContent = data.riskLevel;
+
+            const score = data.financialHealthScore;
+            document.getElementById('resScore').textContent = score;
+            document.getElementById('resClassification').textContent = data.scoreClassification;
+
+            const bar = document.getElementById('scoreBar');
+            const color = score >= 75 ? '#11998e' : score >= 50 ? '#f39c12' : '#e74c3c';
+            bar.style.width = score + '%';
+            bar.style.background = color;
+
+            document.getElementById('resRecommendations').textContent = data.recommendations;
+
+            card.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function logout() {
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userFirstName');
+            localStorage.removeItem('userLastName');
+            window.location.href = 'http://localhost:8082/login';
+        }
+    </script>
+</body>
+</html>

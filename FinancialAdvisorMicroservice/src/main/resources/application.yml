@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: FINANCIAL-ADVISOR-MICROSERVICE
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/financial_advisor_db
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:0205}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+server:
+  port: 8083
+
+eureka:
+  client:
+    enabled: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:your-gemini-api-key-here}
+    model: gemini-pro
+    project-id: ${GEMINI_PROJECT_ID:your-project-id}
+    location: us-central1
