@@ -18,7 +18,7 @@ Frontend (HTML/JS) → API Gateway (8080) → AdminMicroservice (8081) + LoanMic
 - **MySQL 8.x** running with:
   - Database: `admin_db`
   - User: `root`
-  - Password: `0205`
+  - Password: `password`
 - **Maven 3.6+** (or use included `mvnw.cmd`)
 - **Ports Available**: 8761, 8081, 8080
 
@@ -40,7 +40,7 @@ net start MySQL80
 
 **Verify MySQL is accessible:**
 ```bash
-mysql -u root -p0205 -e "SELECT 'MySQL is UP' as status;"
+mysql -u root -password -e "SELECT 'MySQL is UP' as status;"
 ```
 
 ---

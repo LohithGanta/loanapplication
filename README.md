@@ -149,7 +149,7 @@ MySQL Connection
 ├─ Host: localhost
 ├─ Port: 3306
 ├─ Username: root
-├─ Password: 0205
+├─ Password: ****
 └─ Database: admin_db
 ```
 

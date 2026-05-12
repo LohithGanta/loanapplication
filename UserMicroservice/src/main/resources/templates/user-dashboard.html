@@ -192,7 +192,8 @@
                 interestRate: parseFloat(document.getElementById('interestRate').value),
                 employmentType: document.getElementById('employmentType').value,
                 stableJob: document.getElementById('stableJob').value === 'true',
-                borrowerName: firstName + ' ' + lastName
+                borrowerName: firstName + ' ' + lastName,
+                userEmail: localStorage.getItem('userEmail')
             };
 
             try {

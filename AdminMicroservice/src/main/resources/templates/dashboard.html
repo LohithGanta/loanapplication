@@ -139,12 +139,12 @@
                 <p>Active Users</p>
             </div>
             <div class="stat-card">
-                <h3>0</h3>
-                <p>Pending Applications</p>
+                <h3 id="totalLoans">0</h3>
+                <p>Loan Applications</p>
             </div>
             <div class="stat-card">
-                <h3>0</h3>
-                <p>Total Revenue</p>
+                <h3 id="approvedLoans">0</h3>
+                <p>Approved Loans</p>
             </div>
         </div>
 
@@ -164,6 +164,29 @@
                 </thead>
                 <tbody id="usersTableBody">
                     <tr><td colspan="6" style="text-align:center;color:#999;">Loading users...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Loan Applications Table -->
+        <div class="section-card">
+            <h2>Loan Applications</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Borrower</th>
+                        <th>Email</th>
+                        <th>Loan Amount</th>
+                        <th>EMI</th>
+                        <th>FOIR</th>
+                        <th>Health Score</th>
+                        <th>Status</th>
+                        <th>Applied On</th>
+                    </tr>
+                </thead>
+                <tbody id="loansTableBody">
+                    <tr><td colspan="9" style="text-align:center;color:#999;">Loading applications...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -245,6 +268,37 @@
         // Load profile on page load
         loadProfile();
         loadUsers();
+        loadLoans();
+
+        async function loadLoans() {
+            try {
+                const response = await fetch('http://localhost:8084/api/loan/all');
+                if (response.ok) {
+                    const loans = await response.json();
+                    document.getElementById('totalLoans').textContent = loans.length;
+                    document.getElementById('approvedLoans').textContent = loans.filter(l => l.eligibilityStatus === 'APPROVED').length;
+                    const tbody = document.getElementById('loansTableBody');
+                    if (loans.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;">No loan applications yet</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = loans.map((l, i) => `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${l.borrowerName || '-'}</td>
+                            <td>${l.borrowerEmail || '-'}</td>
+                            <td>₹${Math.round(l.loanAmount).toLocaleString('en-IN')}</td>
+                            <td>₹${Math.round(l.monthlyEMI).toLocaleString('en-IN')}</td>
+                            <td>${(l.foir * 100).toFixed(1)}%</td>
+                            <td>${l.financialHealthScore}/100</td>
+                            <td><span class="badge ${l.eligibilityStatus === 'APPROVED' ? 'badge-active' : 'badge-inactive'}">${l.eligibilityStatus}</span></td>
+                            <td>${l.appliedAt ? new Date(l.appliedAt).toLocaleDateString() : '-'}</td>
+                        </tr>`).join('');
+                }
+            } catch (err) {
+                document.getElementById('loansTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#e74c3c;">Could not load loans. Make sure LoanMicroservice is running.</td></tr>';
+            }
+        }
     </script>
 </body>
 </html>
