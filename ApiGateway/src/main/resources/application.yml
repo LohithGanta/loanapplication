@@ -1,0 +1,49 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: API-GATEWAY
+
+  cloud:
+    gateway:
+      routes:
+        # Admin Microservice routes
+        - id: admin-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/admin/**
+
+        # User Microservice routes
+        - id: user-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/auth/**, /api/user/**, /register, /login, /dashboard
+
+        # Loan Microservice routes
+        - id: loan-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/loan/**
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+
+eureka:
+  client:
+    enabled: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
